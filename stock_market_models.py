@@ -11,20 +11,35 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import time
+import torch.autograd 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size , output_size=1):
-        super(LSTM,self).__init__()
-        self.hidden_layer_size = hidden_layer_size
+  def __init__(self,input_size, hidden_size,output_size, num_layers=2):
+        super(LSTM, self).__init__()
+        
+        self.num_layers = num_layers
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        
+        
+        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
+                            num_layers=num_layers, batch_first=True)
+        
+        self.fc = nn.Linear(hidden_size, output_size)
 
-        self.lstm = nn.LSTM(input_size, hidden_layer_size)
-
-        self.linear = nn.Linear(hidden_layer_size, output_size)
-
-        self.hidden_cell = (torch.zeros(1,1,self.hidden_size),
-                            torch.zeros(1,1,self.hidden_size))
-
-    def forward(self, x):
-        lstm_out, self.hidden_cell = self.lstm(x.view(len(x) ,1, -1), self.hidden_cell)
-        predictions = self.linear(lstm_out.view(len(x), -1))
-        return predictions[-1]
+  def forward(self, x):
+      h_0 = torch.autograd.Variable(torch.zeros(
+          self.num_layers, x.shape[0], self.hidden_size)).requires_grad_()
+        
+      c_0 = torch.autograd.Variable(torch.zeros(
+          self.num_layers, x.shape[0], self.hidden_size)).requires_grad_()
+        
+      
+      h_out, (hn, cn) = self.lstm(x, (h_0, c_0))
+        
+      h_out = h_out[:, -1, :]
+      out = self.fc(h_out)
+        
+        
+      return out
