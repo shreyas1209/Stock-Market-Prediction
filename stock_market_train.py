@@ -15,12 +15,13 @@ def train(X_train,y_train,model,loss_function,optimizer,epochs=100):
     output = model(X_train)
     loss = loss_function(output,y_train)
 
-    optimiser.zero_grad()
+    optimizer.zero_grad()
     loss.backward()
-    optimiser.step()
+    optimizer.step()
 
     end_epoch = time.process_time()
-    epoch_time = start_epoch - end_epoch
+    epoch_time = end_epoch - start_epoch
 
-    print("Epoch ", t, "Loss: ", loss.item(),"Time: ",epoch_time)
+    print("Epoch ", (epoch+1), "Loss: ", loss.item(),"Time: ",epoch_time)
+  return output
 
